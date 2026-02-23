@@ -13,19 +13,29 @@ from neonize.utils import build_jid
 from neonize.utils.enum import Presence
 from pathlib import Path
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 # Initialize Pathlib Paths
 BASE_DIR = Path(__file__).resolve().parent
-CONFIG_FILE_PATH = BASE_DIR / "config.yaml"
-BUILD_FILE_PATH = BASE_DIR / "BUILD"
-for path in (CONFIG_FILE_PATH, BUILD_FILE_PATH):
-    if not path.exists():
-        path.touch()
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(exist_ok=True)
+
+CONFIG_FILE_PATH = DATA_DIR / "config.yaml"
+BUILD_FILE_PATH = DATA_DIR / "BUILD"
+SESSION_FILE_PATH = DATA_DIR / "session.db"
+
+# Ensure `config.yaml` exists and is a YAML mapping so the config manager loads a dict
+if not CONFIG_FILE_PATH.exists() or CONFIG_FILE_PATH.stat().st_size == 0:
+    CONFIG_FILE_PATH.write_text("{}\n")
+
+# Ensure BUILD file exists
+if not BUILD_FILE_PATH.exists():
+    BUILD_FILE_PATH.touch()
+
 
 # Initialize logger
 local_log_file_name = "log_last_seen_bot.log"
-local_log_path = str(Path(BASE_DIR / "logs"))
+local_log_path = str(Path(DATA_DIR / "logs"))
 
 logger = redu_logger.RemoteLogger(
     local_logging=True,
@@ -43,12 +53,25 @@ enable_build_manager = True  # False on release
 build_manager = redu_build_manager.BuildManager(enable_build=enable_build_manager, build_file=BUILD_FILE_PATH, )
 
 # Initialize client
-client = NewClient("session.db")
+client = NewClient(str(SESSION_FILE_PATH))
+
+
+def prompt_for_target_number():
+    while True:
+        target_number = input("Enter the target WhatsApp number (without country code, e.g., 880xxxxxxxxxx): ").strip()
+        if target_number and not target_number.startswith("+") and target_number.isdigit():
+            config_manager.set_value("target", target_number, save=True)
+            return target_number
+        else:
+            print("Invalid format. Please enter a valid phone number without country code (e.g., 880xxxxxxxxxx).")
 
 
 def get_target_number():
     logger.info("Retrieving target number from config...")
-    return str(config_manager.get_value("target"))
+    target_number = config_manager.get_value("target")
+    if not target_number:
+        target_number = prompt_for_target_number()
+    return str(target_number)
 
 
 @client.event(ConnectedEv)
