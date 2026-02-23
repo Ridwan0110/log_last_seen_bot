@@ -2,8 +2,8 @@
 A simple bot that logs the last seen status of a specific WhatsApp user.
 It subscribes to presence updates for the target user and prints their online/offline status in real-time.
 """
-
 # Imports
+import os
 import time
 import traceback
 import redu_logger, redu_config_manager, redu_build_manager
@@ -60,7 +60,7 @@ def prompt_for_target_number():
     while True:
         target_number = input("Enter the target WhatsApp number (without country code, e.g., 880xxxxxxxxxx): ").strip()
         if target_number and not target_number.startswith("+") and target_number.isdigit():
-            config_manager.set_value("target", target_number, save=True)
+            config_manager.set_value("target_number", target_number, save=True)
             return target_number
         else:
             print("Invalid format. Please enter a valid phone number without country code (e.g., 880xxxxxxxxxx).")
@@ -68,7 +68,10 @@ def prompt_for_target_number():
 
 def get_target_number():
     logger.info("Retrieving target number from config...")
-    target_number = config_manager.get_value("target")
+    target_number = config_manager.get_value("target_number")
+    if os.environ.get("TARGET_NUMBER"):
+        logger.info("Overriding target number with environment variable.")
+        target_number = os.environ.get("TARGET_NUMBER")
     if not target_number:
         target_number = prompt_for_target_number()
     return str(target_number)
