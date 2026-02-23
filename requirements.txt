@@ -1,0 +1,8 @@
+--find-links https://python.ridwanabid.com/repository/simple/redu-logger
+--find-links https://python.ridwanabid.com/repository/simple/redu-config-manager
+--find-links https://python.ridwanabid.com/repository/simple/redu-build-manager
+
+neonize
+redu_logger
+redu_config_manager
+redu_build_manager
