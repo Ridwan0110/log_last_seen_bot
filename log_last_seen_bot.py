@@ -6,6 +6,7 @@ It subscribes to presence updates for the target user and prints their online/of
 import os
 import time
 import traceback
+import requests
 import redu_logger, redu_config_manager, redu_build_manager
 from neonize.client import NewClient
 from neonize.events import ConnectedEv, PresenceEv
@@ -54,6 +55,27 @@ build_manager = redu_build_manager.BuildManager(enable_build=enable_build_manage
 
 # Initialize client
 client = NewClient(str(SESSION_FILE_PATH))
+
+
+def send_discord_webhook(content: str):
+    webhook_url = config_manager.get_value("discord_webhook_url")
+    if os.environ.get("DISCORD_WEBHOOK_URL"):
+        logger.info("Overriding Discord webhook URL with environment variable.")
+        webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
+
+    if not webhook_url:
+        logger.warning("DISCORD_WEBHOOK_URL variable not set. Skipping Discord webhook.", True)
+        return
+
+    try:
+        response = requests.post(webhook_url, json={"content": content})
+        if response.status_code == 204:
+            logger.info("Successfully sent message to Discord webhook.")
+        else:
+            logger.error(f"Failed to send message to Discord webhook. Status code: {response.status_code}", True)
+    except Exception as e:
+        error_details = traceback.format_exc()
+        logger.error(f"Error sending message to Discord webhook: {e}\n{error_details}", True)
 
 
 def prompt_for_target_number():
@@ -112,10 +134,13 @@ def on_presence(_: NewClient, ev: PresenceEv):
         is_offline = ev.Unavailable
 
         if not is_offline:
-            logger.info(f"[{sender_str}] is now ONLINE", True)
+            msg = f"[{sender_str}] is now ONLINE"
+            logger.info(msg, True)
+            send_discord_webhook(msg)
         else:
-            logger.info(f"[{sender_str}] is now OFFLINE", True)
-
+            msg = f"[{sender_str}] is now OFFLINE"
+            logger.info(msg, True)
+            send_discord_webhook(msg)
     except Exception as e:
         error_details = traceback.format_exc()
         logger.error(f"Error processing presence event: {e}\n{error_details}")
