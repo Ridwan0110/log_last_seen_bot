@@ -11,6 +11,8 @@ from neonize.utils import build_jid
 from neonize.utils.enum import Presence
 from pathlib import Path
 
+__version__ = "1.0.0"
+
 # Initialize Pathlib Paths
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_FILE_PATH = BASE_DIR / "config.yaml"
