@@ -1,0 +1,14 @@
+services:
+  log_last_seen_bot:
+    container_name: log_last_seen_bot
+    image: ghcr.io/ridwan0110/log_last_seen_bot:latest
+    restart: always
+    volumes:
+      - log_last_seen_bot_data:/app/data
+    environment:
+      - TZ=
+      - TARGET_NUMBER=
+
+volumes:
+  log_last_seen_bot_data:
+    driver: local
