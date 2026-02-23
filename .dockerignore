@@ -29,4 +29,6 @@ docker-compose.yml
 docker-compose.yaml
 
 # Redu-Dev
-data
+data/logs
+data/config.yaml
+data/session.db

@@ -181,4 +181,6 @@ cython_debug/
 .cursorindexingignore
 
 # Redu-Dev
-data
+data/logs
+data/config.yaml
+data/session.db
